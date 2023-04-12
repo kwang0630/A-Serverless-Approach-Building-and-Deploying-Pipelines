@@ -1,0 +1,118 @@
+{
+    "name": "pipleline_Name",
+    "id": "pipleline_id",
+    "status": "pipleline_status",
+    "dag": [
+        {
+            "name": "Pipeline Source",
+            "sequence": 1,
+            "id": 9,
+            "input": "https://t2.ea.ltmcdn.com/en/posts/4/0/9/10_things_you_should_know_about_golden_retrievers_904_600_square.jpg",
+            "output": {
+                "output_1": {
+                    "connections": [
+                        {
+                            "node": "10",
+                            "output": "input_1"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "inception",
+            "sequence": 2,
+            "id": 10,
+            "input": {
+                "input_1": {
+                    "connections": [
+                        {
+                            "node": "9",
+                            "input": "output_1"
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "output_1": {
+                    "connections": [
+                        {
+                            "node": "12",
+                            "output": "input_1"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "pydict",
+            "sequence": 3,
+            "id": 12,
+            "input": {
+                "input_1": {
+                    "connections": [
+                        {
+                            "node": "10",
+                            "input": "output_1"
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "output_1": {
+                    "connections": [
+                        {
+                            "node": "13",
+                            "output": "input_1"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "pytran",
+            "sequence": 4,
+            "id": 13,
+            "input": {
+                "input_1": {
+                    "connections": [
+                        {
+                            "node": "12",
+                            "input": "output_1"
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "output_1": {
+                    "connections": [
+                        {
+                            "node": "14",
+                            "output": "input_1"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Sink",
+            "sequence": 5,
+            "id": 14,
+            "input": {
+                "input_1": {
+                    "connections": [
+                       {
+                            "node": "13",
+                            "input": "output_1"
+                        }
+                    ]
+                }
+            },
+            "output": {
+                "output_1": {
+                    "connections": []
+                }
+            }
+        }
+    ]
+}

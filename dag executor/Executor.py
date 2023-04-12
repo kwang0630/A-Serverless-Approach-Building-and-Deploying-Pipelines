@@ -1,0 +1,85 @@
+# from sqlalchemy import func
+from Tasks import invokeFunction
+import pika
+import redis
+import json
+import time
+from redis.commands.json.path import Path
+
+output = None
+task_pipeline = {}
+history = {}
+
+# addResult = add.delay(4, 4)
+# multiplyResult = multiply.delay(4,4)
+# print("addResult: ",addResult.get(timeout=1))
+# print("multiplyResult :> ",multiplyResult.get(timeout=1))
+
+# functionName = "edgedict"
+# payload = "task"
+# pipeline_id = 1
+# function_id = 1
+# functionCall = invokeFunction.delay(functionName,payload,pipeline_id,function_id)
+# print(functionCall)
+
+# while not functionCall.ready():
+#     print("[{}] is running".format(functionName))
+# print("[{}]: finished it's work ".format(functionName))
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+def subscriber(task_name, input, task_id):
+  connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host='localhost'))
+  channel = connection.channel()
+
+  channel.queue_declare(queue='task_queue', durable=True)
+  print(' [*] Waiting for messages. To exit press CTRL+C')
+  invokeFunction(task_name, input, pip_id, task_id)
+  def callback(ch, method, properties, body):
+      global output
+      print(" [x] Received %r" % body.decode())
+      output = body.decode()
+      time.sleep(body.count(b'.'))
+      print(" [x] Done")
+      ch.basic_ack(delivery_tag=method.delivery_tag)
+      # invokeFunction(curr_task["name"], next_input, pip_id, curr_task["id"])
+      # history["task" + str(task_num)] = 1
+      # task_num += 1
+      connection.close()
+  channel.basic_qos(prefetch_count=1)
+  channel.basic_consume(queue='task_queue', on_message_callback=callback)
+  # invokeFunction(curr_task["name"], input, pip_id, curr_task["id"])
+  channel.start_consuming()
+
+def build_pipeline(dags):
+  for i in range(1, len(dags)-1):
+    next_node = r.json().get("dag", Path("[{}].output.output_1.connections[0].node".format(i)))
+    task = dags[i]
+    task_pipeline[task["id"]] = [task["name"], int(next_node)]
+    history[task["name"]] = "unfinished"
+
+  return 0
+
+f = open('dag.json')
+data = json.load(f)
+pip_name = data['name']
+pip_id = data['id']
+pip_status = data['status']
+
+dags = data['dag']
+input = dags[0]["input"]
+r.json().set("dag", Path.root_path(),dags)
+next_node = int(r.json().get("dag", Path("[0].output.output_1.connections[0].node")))
+
+build_pipeline(dags)
+
+while next_node in task_pipeline:
+  print("*****************" * 5)
+  task_name = task_pipeline[next_node][0]
+  print(type(input))
+  subscriber(task_name,input,int(next_node))
+  history[task_name] = "finished"
+  next_node = task_pipeline[next_node][1]
+  input = output
+
+print(history)
