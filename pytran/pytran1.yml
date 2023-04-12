@@ -1,0 +1,9 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  pytran:
+    lang: python3-flask-debian
+    handler: ./pytran
+    image: localhost:5000/pytran:latest
